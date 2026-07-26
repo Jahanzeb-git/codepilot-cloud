@@ -1,0 +1,474 @@
+
+> codepilot-extension@0.0.1 compile
+> webpack
+
+assets by status 100 KiB [cached] 3 assets
+cacheable modules 169 KiB
+  modules by path ./node_modules/js-yaml/lib/ 107 KiB 24 modules
+  modules by path ./src/*.ts 59.9 KiB
+    ./src/extension.ts 3.48 KiB [built] [code generated]
+    ./src/agentSocketClient.ts 6.7 KiB [built] [code generated]
+    + 5 modules
+  ./node_modules/js-yaml/index.js 1.55 KiB [built] [code generated]
+external "vscode" 42 bytes [built] [code generated]
+external "net" 42 bytes [built] [code generated]
+external "events" 42 bytes [built] [code generated]
+external "fs/promises" 42 bytes [built] [code generated]
+external "fs" 42 bytes [built] [code generated]
+external "path" 42 bytes [built] [code generated]
+external "os" 42 bytes [built] [code generated]
+external "child_process" 42 bytes [built] [code generated]
+
+WARNING in configuration
+The 'mode' option has not been set, webpack will fallback to 'production' for this value.
+Set 'mode' option to 'development' or 'production' to enable defaults for each environment.
+You can also set it to 'none' to disable any default behavior. Learn more: https://webpack.js.org/configuration/mode/
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+266:49
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(266,50)
+      TS1127: Invalid character.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+266:50-276:9
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(266,51)
+      TS1134: Variable declaration expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,5)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:11-22
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,12)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:30-31
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,31)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:39-40
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,40)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+280:12-13
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(280,13)
+      TS1005: ':' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+280:21-22
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(280,22)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+281:14-16
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(281,15)
+      TS1005: ':' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+281:48-49
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(281,49)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+282:10-11
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(282,11)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+282:38-39
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(282,39)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+283:10-11
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,11)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+283:32-33
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,33)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+284:12-13
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(284,13)
+      TS1005: ':' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+284:33-34
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(284,34)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+287:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,5)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+287:11-18
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,12)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+287:20-21
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,21)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+287:34-35
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,35)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+288:15-19
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(288,16)
+      TS1005: ':' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+288:24-25
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(288,25)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+290:0-1
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(290,1)
+      TS1005: ',' expected.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+290:1
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(290,2)
+      TS1160: Unterminated template literal.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,5)
+      TS2304: Cannot find name 'public'.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:11-22
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,12)
+      TS2304: Cannot find name 'appendError'.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:11-289:5
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,12)
+      TS2554: Expected 1-2 arguments, but got 8.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:23-30
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,24)
+      TS2552: Cannot find name 'message'. Did you mean 'onmessage'?
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+279:32-38
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,33)
+      TS2693: 'string' only refers to a type, but is being used as a value here.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+281:14-16
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(281,15)
+      TS2304: Cannot find name 'el'.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+282:8-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(282,9)
+      TS18004: No value exists in scope for the shorthand property 'el'. Either declare one or provide an initializer.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+283:8-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,9)
+      TS18004: No value exists in scope for the shorthand property 'el'. Either declare one or provide an initializer.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+283:25-32
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,26)
+      TS2552: Cannot find name 'message'. Did you mean 'onmessage'?
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+284:30-32
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(284,31)
+      TS2304: Cannot find name 'el'.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+287:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,5)
+      TS2304: Cannot find name 'public'.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+287:11-18
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,12)
+      TS2304: Cannot find name 'getRoot'.
+
+36 errors have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack 5.108.4 compiled with 36 errors and 1 warning in 3744 ms
+
+assets by status 316 KiB [cached] 5 assets
+Entrypoint chat = chat.css chat.js 2 auxiliary assets
+Entrypoint terminal = terminal.js 1 auxiliary asset
+orphan modules 38.3 KiB (javascript) 1.37 KiB (runtime) [orphan] 14 modules
+runtime modules 1.1 KiB 3 modules
+cacheable modules 304 KiB (javascript) 22.1 KiB (css/mini-extract)
+  modules by path ./src/webview/ 25.5 KiB (javascript) 22.1 KiB (css/mini-extract)
+    modules by path ./src/webview/chat/*.ts 23.6 KiB
+      ./src/webview/chat/main.ts + 3 modules 13.6 KiB [built] [code generated]
+      ./src/webview/chat/agentMessageView.ts 9.97 KiB [built] [code generated] [1 error]
+    ./src/webview/terminal/main.ts 1.92 KiB [built] [code generated]
+    css ./node_modules/css-loader/dist/cjs.js!./src/webview/chat/styles.css 22.1 KiB [built] [code generated]
+  modules by path ./node_modules/ 278 KiB
+    ./node_modules/xterm/lib/xterm.js 277 KiB [built] [code generated]
+    ./node_modules/xterm-addon-fit/lib/xterm-addon-fit.js 1.47 KiB [built] [code generated]
+
+WARNING in configuration
+The 'mode' option has not been set, webpack will fallback to 'production' for this value.
+Set 'mode' option to 'development' or 'production' to enable defaults for each environment.
+You can also set it to 'none' to disable any default behavior. Learn more: https://webpack.js.org/configuration/mode/
+
+ERROR in ./src/webview/chat/agentMessageView.ts 228:42
+Module parse failed: Unexpected token (228:42)
+File was processed with these loaders:
+ * ./node_modules/ts-loader/index.js
+You may need an additional loader to handle the result of these loaders.
+|                 ${this.fileStats.map((f) => {
+|             const name = f.path.split('/').pop() || f.path;
+>             const addStr = f.added > 0 ?  : ;
+|             `<span class="fm-add">+\${f.added}</span>\` : '';
+|                     const remStr = f.removed > 0 ? \`<span class="fm-rem">-\${f.removed}</span>\` : '';
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 266:49
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(266,50)
+      TS1127: Invalid character.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 266:50-276:9
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(266,51)
+      TS1134: Variable declaration expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,5)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:11-22
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,12)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:30-31
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,31)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:39-40
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,40)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 280:12-13
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(280,13)
+      TS1005: ':' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 280:21-22
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(280,22)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 281:14-16
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(281,15)
+      TS1005: ':' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 281:48-49
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(281,49)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 282:10-11
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(282,11)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 282:38-39
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(282,39)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 283:10-11
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,11)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 283:32-33
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,33)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 284:12-13
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(284,13)
+      TS1005: ':' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 284:33-34
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(284,34)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 287:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,5)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 287:11-18
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,12)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 287:20-21
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,21)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 287:34-35
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,35)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 288:15-19
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(288,16)
+      TS1005: ':' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 288:24-25
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(288,25)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 290:0-1
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(290,1)
+      TS1005: ',' expected.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 290:1
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(290,2)
+      TS1160: Unterminated template literal.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,5)
+      TS2304: Cannot find name 'public'.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:11-22
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,12)
+      TS2304: Cannot find name 'appendError'.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:11-289:5
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,12)
+      TS2554: Expected 1-2 arguments, but got 8.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:23-30
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,24)
+      TS2552: Cannot find name 'message'. Did you mean 'onmessage'?
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 279:32-38
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(279,33)
+      TS2693: 'string' only refers to a type, but is being used as a value here.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 281:14-16
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(281,15)
+      TS2304: Cannot find name 'el'.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 282:8-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(282,9)
+      TS18004: No value exists in scope for the shorthand property 'el'. Either declare one or provide an initializer.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 283:8-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,9)
+      TS18004: No value exists in scope for the shorthand property 'el'. Either declare one or provide an initializer.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 283:25-32
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(283,26)
+      TS2552: Cannot find name 'message'. Did you mean 'onmessage'?
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 284:30-32
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(284,31)
+      TS2304: Cannot find name 'el'.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 287:4-10
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,5)
+      TS2304: Cannot find name 'public'.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts
+./src/webview/chat/agentMessageView.ts 287:11-18
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/agentMessageView.ts(287,12)
+      TS2304: Cannot find name 'getRoot'.
+ @ ./src/webview/chat/main.ts 1:0-54 81:34-50
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/main.ts
+211:37-44
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/main.ts(211,38)
+      TS2339: Property 'getRoot' does not exist on type 'AgentMessageView'.
+
+ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/main.ts
+242:33-44
+[tsl] ERROR in /home/jahanzeb-ahmed/python/codepilot-platform/vs-code-extension/src/webview/chat/main.ts(242,34)
+      TS2339: Property 'appendError' does not exist on type 'AgentMessageView'.
+
+38 errors have detailed information that is not shown.
+Use 'stats.errorDetails: true' resp. '--stats-error-details' to show it.
+
+webpack 5.108.4 compiled with 39 errors and 1 warning in 4827 ms

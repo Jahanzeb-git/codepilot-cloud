@@ -1,0 +1,35 @@
+# Environments and Secrets
+.env
+.env.*
+venv/
+env/
+.venv/
+**/venv/
+**/env/
+**/.venv/
+
+# Python Artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+
+# Databases
+*.db
+*.sqlite
+*.sqlite3
+
+# OS and IDE Files
+.DS_Store
+.vscode/
+.idea/
+
+# Rust Build Artifacts
+runner/persistent-vol/target/
+
+# Local Testing/Prototypes (Optional: if you don't want to push it)
+fly_fastapi_socketio/
+node_modules/
