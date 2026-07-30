@@ -64,6 +64,19 @@ async def get_current_user(
     user = await get_user_by_email(db, email)
     return user
 
+async def get_current_user_ws(
+    token: str,
+    db: AsyncSession
+):
+    try:
+        email = decode_access_token(token)["sub"]
+    except Exception:
+        raise ValueError("Invalid or expired token")
+    
+    from crud.repository import get_user_by_email
+    user = await get_user_by_email(db, email)
+    return user
+
 def create_connect_ticket(email: str) -> str:
     """Creates a short-lived (5 min) JWT specifically for redirecting to workspaces."""
     header = {"alg": ALGORITHM}

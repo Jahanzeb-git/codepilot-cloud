@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Test</title>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+        const vscode = {
+            postMessage: (msg) => console.log('postMessage', msg)
+        };
+        window.acquireVsCodeApi = () => vscode;
+    </script>
+    <script src="dist/webview.js"></script>
+    <script>
+        window.postMessage({
+            type: 'session_switched',
+            session_id: 'session_test',
+            messages: [
+                { role: 'user', content: '[SYSTEM] hi' },
+                { role: 'assistant', content: 'priming' },
+                { role: 'user', content: '[EXECUTION RESULT] ok' },
+                { role: 'assistant', content: 'priming2' },
+                { role: 'user', content: '[EXECUTION RESULT] ok' },
+                { role: 'user', content: '[Task 1][USER INPUT]\nHello' },
+                { role: 'assistant', content: 'Hello! 👋' }
+            ]
+        }, '*');
+    </script>
+</body>
+</html>

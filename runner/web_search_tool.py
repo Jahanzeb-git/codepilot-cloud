@@ -1,8 +1,4 @@
-"""
-web_search_tool.py
-Author: Jahanzeb Ahmed <jahanzebahmed.mail@gmail.com>
-Description: High-performance, token-optimized Tavily web search and page extraction tool with Table of Contents navigation.
-"""
+from codepilot.engine.hooks import EventType
 import re
 import httpx
 import logging
@@ -21,32 +17,44 @@ MAX_SEARCH_CHARS = 3000
 # -------------------------------------------------------------------------
 _TAVILY_API_KEY: str = ""
 
-
 def set_tavily_key(key: str) -> None:
     """Called once by agent_server.py after it pops TAVILY_API_KEY from os.environ."""
     global _TAVILY_API_KEY
     _TAVILY_API_KEY = key
 
 
-def search_web(query: str = "", domain: str = "", url: str = "", section: str = "") -> str:
-    """
-    Search web or extract page content. Returns markdown with citations.
-    Pass query/domain to search, or url/section to read specific web page sections.
-    """
-    clean_url = url.strip()
-    clean_query = query.strip()
+class SearchWebTool:
+    def __init__(self, runtime):
+        # Extract underlying AsyncRuntime whether given Runtime or AsyncRuntime
+        self.async_rt = getattr(runtime, "_async", runtime)
+        self.hooks = runtime.hooks
 
-    if clean_url:
-        result = _extract_page(clean_url, section.strip())
-    elif clean_query:
-        result = _perform_search(clean_query, domain.strip())
-    else:
-        result = "Error: Please provide a 'query' to search or a 'url' to extract content."
+    def search_web(self, query: str = "", domain: str = "", url: str = "", section: str = "") -> str:
+        """
+        Search web or extract page content. Returns markdown with citations.
+        Pass query/domain to search, or url/section to read specific web page sections.
+        """
+        # 1. Emit TOOL_CALL event for UI/hooks
+        self.hooks.emit(EventType.TOOL_CALL, tool="search_web", args={"query": query, "domain": domain, "url": url, "section": section})
 
-    # Print the result so the codepilot runtime captures it via its _captured_print
-    # interceptor. Plain `return` from exec() is silently discarded — print() is not.
-    print(result)
-    return result
+        clean_url = url.strip()
+        clean_query = query.strip()
+
+        if clean_url:
+            result = _extract_page(clean_url, section.strip())
+        elif clean_query:
+            result = _perform_search(clean_query, domain.strip())
+        else:
+            result = "Error: Please provide a 'query' to search or a 'url' to extract content."
+
+        # 3. Push output to execution buffer (NO print() needed by LLM!)
+        if hasattr(self.async_rt, "_append_execution"):
+            self.async_rt._append_execution(f"[search_web]\n{result}")
+
+        # 4. Emit TOOL_RESULT event for UI/hooks
+        self.hooks.emit(EventType.TOOL_RESULT, tool="search_web", result=result)
+
+        return result
 
 
 def _perform_search(query: str, domain: str) -> str:
@@ -199,7 +207,8 @@ def _extract_page(url: str, target_section: str) -> str:
 
 def register_search_web_tool(runtime) -> None:
     """Register search_web into a codepilot Runtime instance."""
+    web_tool = SearchWebTool(runtime)
     if hasattr(runtime, "register_tool"):
-        runtime.register_tool(name="search_web", func=search_web, replace=True)
+        runtime.register_tool(name="search_web", func=web_tool.search_web, replace=True)
     elif hasattr(runtime, "tools"):
-        runtime.tools["search_web"] = search_web
+        runtime.tools["search_web"] = web_tool.search_web

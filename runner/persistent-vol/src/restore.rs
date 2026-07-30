@@ -55,11 +55,20 @@ pub async fn run_restore(
         tasks.push(tokio::spawn(async move {
             let _permit = sem.acquire_owned().await.unwrap();
 
+            // If the file already exists, check the hash first.
+            // If the hash matches what is in B2, the file is already up to date — skip it.
+            // If the hash DOESN'T match (e.g. a stale image default replaced the user's
+            // customised file after an image update), we MUST overwrite it with the B2 copy.
             if target_path.exists() {
                 if let Ok((local_sha, _)) = hash_file(&target_path).await {
                     if local_sha == expected_sha {
                         return anyhow::Ok(());
                     }
+                    // Hash mismatch — fall through to download and overwrite.
+                    tracing::info!(
+                        "Hash mismatch for {:?}: local != b2, overwriting with B2 copy.",
+                        target_path
+                    );
                 }
             }
 
@@ -68,6 +77,8 @@ pub async fn run_restore(
             }
 
             let bytes = b2_client::download_file(&client, &session, &b2_key).await?;
+            // Use write() which creates OR truncates-and-overwrites. This is intentional:
+            // the B2 manifest is the authoritative source of truth for persisted files.
             tokio::fs::write(&target_path, bytes).await?;
             anyhow::Ok(())
         }));

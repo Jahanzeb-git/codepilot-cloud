@@ -17,6 +17,7 @@ export type AgentEvent =
     | { type: 'permission_request'; tool: string; description: string }
     | { type: 'connection_status'; status: 'connected' | 'disconnected' | 'reconnecting' | 'error'; detail?: string }
     | { type: 'session_switched'; session_id: string }
+    | { type: 'session_deleted'; session_id: string }
     | { type: 'settings_updated'; success: boolean; message?: string };
 
 /**
@@ -30,6 +31,7 @@ export type AgentEvent =
  *   {"type":"event","event_type":"suspend"}
  *   {"type":"event","event_type":"new_session","session_id":"session_00N"}
  *   {"type":"event","event_type":"switch_session","session_id":"session_00N"}
+ *   {"type":"event","event_type":"delete_session","session_id":"session_00N"}
  *   {"type":"event","event_type":"update_settings","settings":{...UpdateSettingsPayload}}
  *
  * Expected inbound responses (server -> extension), see AgentEvent above:
@@ -152,6 +154,10 @@ export class AgentSocketClient extends EventEmitter implements vscode.Disposable
         this.send({ type: 'event', event_type: 'switch_session', session_id: sessionId });
     }
 
+    public deleteSession(sessionId: string): void {
+        this.send({ type: 'event', event_type: 'delete_session', session_id: sessionId });
+    }
+
     public updateSettings(settings: UpdateSettingsPayload): void {
         this.send({ type: 'event', event_type: 'update_settings', settings });
     }
@@ -164,7 +170,6 @@ export class AgentSocketClient extends EventEmitter implements vscode.Disposable
     public dispose(): void {
         this.manuallyDisposed = true;
         if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
-        if (this.connectionState === 'connected') this.suspend();
         this.socket?.destroy();
         this.removeAllListeners();
     }

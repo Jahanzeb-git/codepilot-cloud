@@ -15,6 +15,11 @@ export interface ThinkingConfig {
     reasoning_effort?: string;    // 'low' | 'medium' | 'high' for OpenAI/Gemini; 'high' | 'max' for DeepSeek
 }
 
+export interface SubAgentsConfig {
+    enabled: boolean;
+    max_steps: number;
+}
+
 export interface AgentYamlSnapshot {
     provider: string;
     model: string;
@@ -26,6 +31,7 @@ export interface AgentYamlSnapshot {
     system_prompt: string;
     tools: Record<string, ToolPermission>;
     thinking?: ThinkingConfig;
+    sub_agents?: SubAgentsConfig;
 }
 
 export interface UpdateSettingsPayload {
@@ -40,6 +46,7 @@ export interface UpdateSettingsPayload {
     tools: Record<string, ToolPermission>;
     system_prompt_append?: string;
     thinking?: ThinkingConfig;
+    sub_agents?: SubAgentsConfig;
 }
 
 export const MODELS_BY_PROVIDER: Record<string, string[]> = {

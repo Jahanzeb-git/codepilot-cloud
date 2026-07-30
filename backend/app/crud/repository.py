@@ -87,7 +87,8 @@ async def delete_machine_record(db: AsyncSession, machine: MachineDB):
     and reuse it with a fresh machine ID and secret.
     """
     machine.fly_machine_id = None
-    machine.machine_secret = None        # None — no longer valid for auth
+    import secrets
+    machine.machine_secret = f"deleted_{secrets.token_urlsafe(16)}"
     machine.status = "stopped"
     machine.last_started_at = None
     await db.commit()
@@ -110,5 +111,11 @@ async def update_usage_on_suspend(db: AsyncSession, machine: MachineDB):
             machine.total_usage_seconds += elapsed
         machine.last_started_at = None
         await db.commit()
+
+async def get_running_machines(db: AsyncSession):
+    """Get all machines that are currently marked as running (last_started_at is not None)."""
+    query = select(MachineDB).where(MachineDB.last_started_at.isnot(None))
+    result = await db.execute(query)
+    return result.scalars().all()
 
 # --END OF FILE--

@@ -15,6 +15,7 @@ from codepilot import (
     on_user_message_injected,
     on_permission_request,
     on_thinking_stream,
+    on_runtime_error,
     EventType,
 )
 
@@ -215,6 +216,11 @@ def init_runtime(session_id: str) -> Runtime:
         print(f"[EVENT] Permission {'granted' if allowed else 'denied'} for tool: {tool}")
         return allowed
 
+    @on_runtime_error(r)
+    def _runtime_error(error: str, **_):
+        print(f"[EVENT] Runtime error: {error}")
+        emit({"type": "error", "message": error})
+
     print(f"[INFO] Runtime initialised for session: {session_id}")
     return r
 
@@ -255,16 +261,8 @@ def secure_init_runtime(session_id: str) -> tuple[Runtime | None, str | None]:
 active_session_id = generate_session_id(SESSIONS_DIR)
 runtime, _runtime_init_error = secure_init_runtime(active_session_id)
 
-# Outer loop: accept a new connection after each disconnect
-shutdown = False
-
-while not shutdown:
-    print("[INFO] Waiting for client to connect...")
-    try:
-        conn, addr = server_socket.accept()
-    except OSError as e:
-        print(f"[ERROR] server socket error: {e}")
-        break
+def handle_client(conn, addr):
+    global _client_socket, runtime, runtime_thread, active_session_id, _runtime_init_error, _user_llm_env_var, _user_llm_key
 
     print(f"[INFO] Client connected: {addr}")
 
@@ -376,6 +374,22 @@ while not shutdown:
                     _runtime_init_error = None
                     emit({"type": "session_switched", "session_id": obj["session_id"]})
 
+            elif obj["type"] == "event" and obj["event_type"] == "delete_session":
+                session_to_delete = obj["session_id"]
+                file_path = os.path.join(SESSIONS_DIR, f"{session_to_delete}.json")
+                try:
+                    if os.path.exists(file_path):
+                        os.remove(file_path)
+                    
+                    if active_session_id == session_to_delete:
+                        runtime = None
+                        active_session_id = None
+                        _runtime_init_error = None
+                        
+                    emit({"type": "session_deleted", "session_id": session_to_delete})
+                except Exception as e:
+                    emit({"type": "error", "message": f"Failed to delete session: {e}"})
+
             elif obj["type"] == "event" and obj["event_type"] == "update_settings":
 
                 with open(AGENT_YAML_PATH, "r") as f:
@@ -413,6 +427,17 @@ while not shutdown:
 
                 update_if_present(data["agent"]["runtime"], "max_steps",    settings)
                 update_if_present(data["agent"]["runtime"], "unsafe_mode",  settings)
+
+                # Sub-agents config
+                sub_agents_settings = settings.get("sub_agents", {})
+                if sub_agents_settings:
+                    if "sub_agents" not in data["agent"]:
+                        data["agent"]["sub_agents"] = {}
+                    sub_agents_block = data["agent"]["sub_agents"]
+                    if "enabled" in sub_agents_settings:
+                        sub_agents_block["enabled"] = sub_agents_settings["enabled"]
+                    if "max_steps" in sub_agents_settings:
+                        sub_agents_block["max_steps"] = int(sub_agents_settings["max_steps"])
 
                 if "tools" in settings and settings["tools"]:
                     for tool_name, tool_conf in settings["tools"].items():
@@ -462,14 +487,25 @@ while not shutdown:
                     emit({"type": "settings_updated", "success": True})
 
     with lock:
-        _client_socket = None
+        if _client_socket == conn:
+            _client_socket = None
     try:
         conn.close()
     except OSError:
         pass
+    print("[INFO] Client disconnected.")
 
-    if not shutdown:
-        print("[INFO] Client disconnected. Waiting for reconnect...")
+shutdown = False
+while not shutdown:
+    print("[INFO] Waiting for client to connect...")
+    try:
+        conn, addr = server_socket.accept()
+        t = threading.Thread(target=handle_client, args=(conn, addr), daemon=True)
+        t.start()
+    except OSError as e:
+        print(f"[ERROR] server socket error: {e}")
+        break
 
 print("[INFO] Agent server shutting down.")
 # ---END OF FILE---
+    

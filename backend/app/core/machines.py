@@ -185,6 +185,40 @@ class MachineService:
             raise
 
 
+    async def update_machine_image_if_needed(self, machine_id: str):
+        try:
+            # 1. Fetch current machine state
+            machine_data = await self.check_status(machine_id)
+            current_config = machine_data.get("config", {})
+            current_image = current_config.get("image", "")
+
+            # 2. Check if image matches the desired RUNNER_IMAGE
+            if RUNNER_IMAGE and current_image != RUNNER_IMAGE:
+                logger.info(f"Machine {machine_id} is running outdated image '{current_image}'. Updating to '{RUNNER_IMAGE}'...")
+                
+                # Update the image in the config payload
+                current_config["image"] = RUNNER_IMAGE
+                payload = {"config": current_config}
+                
+                # 3. Post the updated config back to Fly.io
+                response = await self.client.post(
+                    f"/apps/{WORKSPACE_APP_NAME}/machines/{machine_id}", 
+                    json=payload
+                )
+                response.raise_for_status()
+                logger.info(f"Successfully updated image for machine {machine_id}.")
+                return response.json()
+            else:
+                logger.info(f"Machine {machine_id} is already running the latest image '{RUNNER_IMAGE}'.")
+                return None
+
+        except httpx.HTTPStatusError as e:
+            logger.error(f"HTTP error while updating machine image. Status: {e.response.status_code}, Response: {e.response.text}")
+            raise
+        
+        except Exception as e:
+            logger.error(f"Unexpected error while updating machine image: {e}")
+            raise
 
     async def check_status(self, machine_id: str):
         try:

@@ -69,6 +69,7 @@ export function renderSessionHistory(chatContainer: HTMLElement, messages: Trans
                 view.addToolCall(tool, {}, `Completed ${tool}`);
                 view.resolveToolCall(tool, '');
             }
+            view.finish();
         }
     }
 

@@ -1,4 +1,6 @@
-from fastapi import APIRouter, HTTPException, Depends, Request, Response, Header
+from fastapi import APIRouter, HTTPException, Depends, Request, Response, Header, WebSocket
+from fastapi.exceptions import HTTPException as FastAPIHTTPException
+import asyncio
 from core.security import get_current_user, create_connect_ticket, get_user_from_connect_ticket
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db_session
@@ -69,6 +71,9 @@ async def launch_machine(request: Request, db: AsyncSession = Depends(get_db_ses
         # It does NOT return the machine name or new state.
         # We use the data we already have from the DB record.
         try:
+            # Automatically upgrade image if outdated before starting
+            await request.app.state.machine_service.update_machine_image_if_needed(machine.fly_machine_id)
+            
             await request.app.state.machine_service.start_machine(machine.fly_machine_id)
         except httpx.HTTPStatusError as e:
             if e.response.status_code in (404, 412):
@@ -109,6 +114,10 @@ async def launch_machine(request: Request, db: AsyncSession = Depends(get_db_ses
         logger.info(f"machine {machine.fly_machine_id} is starting")
         return {"status": "starting", "machine_id": machine.fly_machine_id}
     
+    except FastAPIHTTPException:
+        # Re-raise HTTPExceptions (403 quota, 404 not found, etc.) so they
+        # are NOT caught by the generic handler below and mangled into a 500.
+        raise
     except httpx.HTTPError as e:
         logger.exception("Communication with Fly.io failed")
         raise HTTPException(
@@ -137,7 +146,9 @@ async def check_machine_status(request: Request, db: AsyncSession = Depends(get_
         if machine.last_started_at:
             now = datetime.now(timezone.utc).replace(tzinfo=None)
             live_usage = int((now - machine.last_started_at).total_seconds())
-            if machine.daily_usage_seconds + live_usage >= 10800:
+            daily_exceeded = (machine.daily_usage_seconds + live_usage) >= 10800
+            total_exceeded = (machine.total_usage_seconds + live_usage) >= 324000
+            if daily_exceeded or total_exceeded:
                 await request.app.state.machine_service.suspend_machine(machine.fly_machine_id)
                 await update_usage_on_suspend(db, machine)
                 machine.status = "stopped"
@@ -168,6 +179,79 @@ async def check_machine_status(request: Request, db: AsyncSession = Depends(get_
             detail="Something went wrong on our end."
         )
     
+@router.websocket("/ws/status")
+async def check_machine_status_ws(websocket: WebSocket, db: AsyncSession = Depends(get_db_session)):
+    token = websocket.query_params.get("token")
+    if not token:
+        await websocket.close(code=1008, reason="Missing token")
+        return
+    
+    from core.security import get_current_user_ws
+    try:
+        user = await get_current_user_ws(token, db)
+    except ValueError:
+        await websocket.close(code=1008, reason="Invalid token")
+        return
+        
+    if not user:
+        await websocket.close(code=1008, reason="User not found")
+        return
+
+    await websocket.accept()
+
+    try:
+        while True:
+            machine = await is_machine_exists(db, user.id)
+            if not machine:
+                await websocket.send_json({"status": "idle"})
+            else:
+                await check_and_reset_daily_quota(db, machine)
+                
+                if machine.last_started_at:
+                    now = datetime.now(timezone.utc).replace(tzinfo=None)
+                    live_usage = int((now - machine.last_started_at).total_seconds())
+                    daily_exceeded = (machine.daily_usage_seconds + live_usage) >= 10800
+                    total_exceeded = (machine.total_usage_seconds + live_usage) >= 324000
+                    if daily_exceeded or total_exceeded:
+                        try:
+                            await websocket.app.state.machine_service.suspend_machine(machine.fly_machine_id)
+                        except httpx.HTTPError:
+                            pass
+                        await update_usage_on_suspend(db, machine)
+                        machine.status = "stopped"
+                        await db.commit()
+                        await websocket.send_json({
+                            "status": "quota_exceeded", 
+                            "message": "Daily quota for 3 hours is exhausted please come back at UTC time of server + 5 hours"
+                        })
+                        await asyncio.sleep(4)
+                        continue
+
+                machine_id = machine.fly_machine_id
+                if not machine_id:
+                    await websocket.send_json({"status": "idle"})
+                    await asyncio.sleep(4)
+                    continue
+                
+                try:
+                    machine_res = await websocket.app.state.machine_service.check_status(machine_id)
+                    state = machine_res.get("state")
+                    checks = machine_res.get("checks",[])
+                    if state == "started" and checks and checks[0].get("status") == "passing":
+                        await websocket.send_json({"status": "ready", "machine_name": machine.fly_machine_id})
+                    else:
+                        await websocket.send_json({"status": state, "machine_name": machine.fly_machine_id})
+                except httpx.HTTPError:
+                    await websocket.send_json({"status": "error", "message": "Infrastructure provider is currently unreachable"})
+
+            await asyncio.sleep(4)
+    except Exception as e:
+        logger.error(f"Status WebSocket closed/error: {e}")
+        try:
+            await websocket.close()
+        except:
+            pass
+
 @router.api_route("/connect-ticket", methods=["GET", "POST"])
 async def generate_connect_ticket(user = Depends(get_current_user)):
     """Generates a 30-second ticket so the user's main token doesn't go in the URL."""
@@ -200,7 +284,7 @@ async def connect_to_machine(db: AsyncSession = Depends(get_db_session), user = 
     )
     return response
 
-@router.post("/delete")
+@router.api_route("/delete", methods=["POST", "DELETE"])
 async def delete_machine(request: Request, db: AsyncSession = Depends(get_db_session), user = Depends(get_current_user)):
     try:
         machine = await is_machine_exists(db, user.id)

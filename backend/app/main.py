@@ -11,15 +11,18 @@ import asyncio
 import httpx
 import websockets
 from websockets.exceptions import ConnectionClosed
+import collections
 
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, Depends, Request, WebSocket, WebSocketDisconnect
 from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.database import Base, _async_engine, get_db_session
+from db.database import Base, _async_engine, get_db_session, SessionFactory
 from core.machines import MachineService
 from api import auth, machines
+from crud.repository import get_running_machines, check_and_reset_daily_quota, update_usage_on_suspend
+from datetime import datetime, timezone
 
 logging.basicConfig(
     level=logging.INFO,
@@ -27,14 +30,58 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+async def quota_enforcer_task(app: FastAPI):
+    """Background task to enforce usage quotas every 120 seconds."""
+    logger.info("Quota enforcer background task started.")
+    try:
+        while True:
+            await asyncio.sleep(120)
+            logger.debug("Running background quota check...")
+            try:
+                # Use a fresh DB session for each loop iteration
+                async with SessionFactory() as db:
+                    machines = await get_running_machines(db)
+                    
+                    for machine in machines:
+                        # Ensure daily quotas reset at UTC midnight
+                        await check_and_reset_daily_quota(db, machine)
+                        
+                        if machine.last_started_at:
+                            now = datetime.now(timezone.utc).replace(tzinfo=None)
+                            live_usage = int((now - machine.last_started_at).total_seconds())
+                            
+                            daily_limit_reached = (machine.daily_usage_seconds + live_usage) >= 10800
+                            total_limit_reached = (machine.total_usage_seconds + live_usage) >= 324000
+                            
+                            if daily_limit_reached or total_limit_reached:
+                                logger.info(f"Quota exceeded for machine {machine.fly_machine_id}. Suspending...")
+                                try:
+                                    await app.state.machine_service.suspend_machine(machine.fly_machine_id)
+                                except httpx.HTTPError as e:
+                                    logger.error(f"Failed to suspend machine {machine.fly_machine_id}: {e}")
+                                    continue # Skip DB update if API call fails
+                                
+                                await update_usage_on_suspend(db, machine)
+                                machine.status = "stopped"
+                                await db.commit()
+            except Exception as e:
+                logger.error(f"Error in quota enforcer loop: {e}")
+    except asyncio.CancelledError:
+        logger.info("Quota enforcer background task cancelled.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with _async_engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
     app.state.machine_service = MachineService()
+    app.state.quota_task = asyncio.create_task(quota_enforcer_task(app))
     logging.info("App started...")
     yield
+    app.state.quota_task.cancel()
+    try:
+        await app.state.quota_task
+    except asyncio.CancelledError:
+        pass
     await app.state.machine_service.client.aclose()
     logging.info("App Shutdown...")
 
@@ -80,6 +127,39 @@ async def health_check(db: AsyncSession = Depends(get_db_session)):
 
 EXCLUDED_PREFIXES = ("auth", "machines", "docs", "openapi.json", "health")
 WORKSPACE_PORT = 8080
+
+# State for server-side auto-suspend
+active_connections: dict[str, int] = collections.defaultdict(int)
+pending_suspends: dict[str, asyncio.Task] = {}
+
+async def delayed_suspend(machine_id: str, app: FastAPI, delay_seconds: int = 300):
+    try:
+        await asyncio.sleep(delay_seconds)
+        logger.info(f"Machine {machine_id} idle for {delay_seconds} seconds, suspending...")
+        
+        # Suspend the machine
+        await app.state.machine_service.suspend_machine(machine_id)
+        
+        # Update database status
+        async with SessionFactory() as db:
+            from sqlalchemy import select
+            from models.models import MachineDB
+            query = select(MachineDB).where(MachineDB.fly_machine_id == machine_id)
+            exec = await db.execute(query)
+            machine = exec.scalar_one_or_none()
+            if machine:
+                machine.status = "stopped"
+                await update_usage_on_suspend(db, machine)
+                await db.commit()
+    except asyncio.CancelledError:
+        logger.info(f"Auto-suspend cancelled for machine {machine_id} due to new connection")
+    except Exception as e:
+        logger.error(f"Error during delayed auto-suspend for machine {machine_id}: {e}")
+    finally:
+        # Cleanup pending_suspends if this task is still tracked
+        if machine_id in pending_suspends and pending_suspends[machine_id] == asyncio.current_task():
+            del pending_suspends[machine_id]
+
 
 
 def get_target_host(machine_id: str) -> str:
@@ -175,6 +255,14 @@ async def websocket_proxy(websocket: WebSocket, path: str):
     await websocket.accept()
     logger.info(f"[ws_proxy] Accepted browser WS for machine {machine_id}, path={path}")
 
+    # Track connection and cancel any pending suspend
+    active_connections[machine_id] += 1
+    if machine_id in pending_suspends:
+        pending_suspends[machine_id].cancel()
+        del pending_suspends[machine_id]
+        logger.info(f"[ws_proxy] Cancelled pending suspend for machine {machine_id}")
+
+
     try:
         async with websockets.connect(
             target_url,
@@ -225,6 +313,15 @@ async def websocket_proxy(websocket: WebSocket, path: str):
             await websocket.close()
         except Exception:
             pass
+        
+        # Track disconnection and schedule suspend if no connections remain
+        active_connections[machine_id] -= 1
+        if active_connections[machine_id] <= 0:
+            active_connections[machine_id] = 0
+            # Wait 5 minutes (300 seconds) before suspending
+            pending_suspends[machine_id] = asyncio.create_task(delayed_suspend(machine_id, websocket.app, 300))
+            logger.info(f"[ws_proxy] No active connections for {machine_id}, scheduled suspend in 5 minutes")
+            
         logger.info(f"[ws_proxy] Closed proxy session for machine {machine_id}")
 
 # END OF FILE

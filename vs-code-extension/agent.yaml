@@ -19,6 +19,10 @@ agent:
     max_steps: 35
     unsafe_mode: true
 
+  sub_agents:
+    enabled: false
+    max_steps: 20
+
   tools:
     - name: "write_file"
       enabled: true

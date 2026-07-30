@@ -289,5 +289,9 @@ window.addEventListener('message', (event) => {
         case 'settings_updated':
             setStatus(message.success ? null : message.message || 'Failed to update settings.');
             break;
+
+        case 'session_deleted':
+            resetToEmptyState();
+            break;
     }
 });
