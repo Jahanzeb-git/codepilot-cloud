@@ -1,0 +1,84 @@
+# agent.yaml
+agent:
+  name: "Codepilot"
+  role: "Expert software engineer with deep knowledge of Python, TypeScript, and system design."
+
+  system_prompt: "You're Codepilot agent interfaced through IDE on user browser developed by 'Jahanzeb Ahmed <jahanzebahmed.xyz>'."
+
+  model:
+    provider: "alibaba"
+    name: "qwen3.7-plus"
+    api_key_env: "DASHSCOPE_API_KEY"
+    temperature: 1.0
+    max_tokens: 65536
+    thinking:
+      enabled: false
+
+  runtime:
+    work_dir: "/workspace"
+    max_steps: 35
+    unsafe_mode: true
+
+  sub_agents:
+    enabled: false
+    max_steps: 20
+
+  tools:
+    - name: "write_file"
+      enabled: true
+      config:
+        require_permission: true
+
+    - name: "edit_file"
+      enabled: true
+      config:
+        require_permission: true
+
+    - name: "view_file"
+      enabled: true
+
+    - name: "execute"
+      enabled: true
+      config:
+        require_permission: true
+        max_output_chars: 10000
+
+    - name: "read_output"
+      enabled: true
+
+    - name: "send_input"
+      enabled: true
+
+    - name: "terminate_terminal"
+      enabled: true
+
+    - name: "ask_user"
+      enabled: true
+
+    - name: "find"
+      enabled: true
+
+    - name: "semantic_search"
+      enabled: true
+      config:
+        api_key_env: "VOYAGE_API_KEY"
+        model: "voyage-code-3"
+        base_url: "https://api.voyageai.com/v1"
+        provider: "openai"
+        max_results: 5
+        timeout: 60
+        max_output_chars: 8000
+
+    - name: "mcp"
+      enabled: false
+      config:
+        embedding_model: "voyage-code-3"
+        embedding_api_key_env: "VOYAGE_API_KEY"
+        embedding_base_url: "https://api.voyageai.com/v1"
+        top_k: 3
+        servers: []
+
+    - name: "search_web"
+      enabled: true
+      config:
+        require_permission: false
