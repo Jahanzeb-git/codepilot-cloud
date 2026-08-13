@@ -213,7 +213,7 @@ run_container() {
     -p "${HOST_PORT}:8080" \
     -v "$AGENT_YAML:/opt/codepilot/agent.yaml" \
     -v "$SESSIONS_DIR:/root/.codepilot/sessions" \
-    -v "$WORKSPACE_DIR:/workspace" \
+    --mount "type=bind,source=${WORKSPACE_DIR},target=/workspace" \
     -e DEEPSEEK_API_KEY="not-configured" \
     -e VOYAGE_API_KEY="not-configured" \
     -e TAVILY_API_KEY="not-configured" \
