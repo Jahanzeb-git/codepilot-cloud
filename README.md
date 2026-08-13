@@ -52,13 +52,13 @@ FastAPI service that acts as the control plane. It doesn't run any user code its
 - Suspends anything idle, because I'm paying for this out of pocket, not VC money.
 - Enforces usage quotas (more on that below).
 
-## Machine (`/machine`)
+## Runner (`/machine/runner`)
 
 The image that actually gets booted per user. This is where the agent lives.
 
-- `runner/agent_server.py` runs the agent runtime and talks to the frontend over a Unix domain socket — local, no network hop, so it's fast and there's nothing to eavesdrop on.
+- `agent_server.py` runs the agent runtime and talks to the frontend over a Unix domain socket — local, no network hop, so it's fast and there's nothing to eavesdrop on.
 - A small Rust daemon handles filesystem snapshotting. It's a precompiled binary baked straight into the image, not a script wrapping some CLI tool, so it's basically as fast as this kind of thing gets. It watches the workspace and syncs to Backblaze B2 in the background, which is what lets a machine die and come back later without anyone losing their work.
-- `webapp/` is the browser IDE — a TypeScript/Vite frontend that gets compiled and baked into the Docker image at build time.
+- `webapp/` is the browser IDE — a TypeScript/Vite frontend that gets compiled and baked into the runner image at build time.
 
 ## Security
 
@@ -94,16 +94,6 @@ flowchart TB
 
 ## Deploying it
 
-Backend and machine deploy as two separate services.
+Backend and runner deploy as two separate services onto the infrastructure. The runner gets built and pushed as an image; the backend pulls it fresh every time it provisions a new workspace. Nothing exotic — if your platform gives you per-user microVMs and private networking between them (AWS bare-metal EC2 works, though you're on your own for the orchestration layer that comes free here), this maps over pretty directly.
 
-```bash
-# Deploy the control plane
-cd backend
-fly deploy
-
-# Build and push the workspace image (Fly CI path)
-cd machine
-fly deploy --build-only --push
-```
-
-The GitHub Actions workflow (`.github/workflows/publish-image.yml`) also builds and pushes the same `machine/runner/Dockerfile` image to GHCR on every push to `main`, which is what the `distribution/` scripts pull.
+The GitHub Actions workflow (`.github/workflows/publish-image.yml`) builds and pushes the runner image to GHCR on every push to `main` — that's the same image the `distribution/` scripts pull for local use.
