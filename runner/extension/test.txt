@@ -1,1 +1,0 @@
-This is a scratch file for testing webview.

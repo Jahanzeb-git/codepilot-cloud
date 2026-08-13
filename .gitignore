@@ -28,7 +28,9 @@ dist/
 .idea/
 
 # Rust Build Artifacts
-runner/persistent-vol/target/
+machine/runner/persistent-vol/target/
+machine/runner/server/target/
+target/
 
 # Local Testing/Prototypes (Optional: if you don't want to push it)
 fly_fastapi_socketio/

@@ -21,7 +21,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import Base, _async_engine, get_db_session, SessionFactory
 from core.machines import MachineService
 from api import auth, machines
-from crud.repository import get_running_machines, check_and_reset_daily_quota, update_usage_on_suspend
+from crud.repository import (
+    get_running_machines,
+    reconcile_usage,
+    update_usage_on_suspend,
+    touch_machine_activity,
+    get_idle_running_machines,
+    DAILY_LIMIT_SECONDS,
+    TOTAL_LIMIT_SECONDS,
+)
 from datetime import datetime, timezone
 
 logging.basicConfig(
@@ -30,49 +38,96 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# How often the authoritative, DB-backed enforcer sweeps for quota-exceeded
+# or idle machines. This is the ONLY thing that can be trusted to actually
+# stop a machine no matter what else goes wrong (a crashed WS proxy, a
+# restarted backend instance, a browser tab that vanished without a clean
+# disconnect) — it doesn't depend on any single process's in-memory state,
+# and it re-reads everything fresh from the DB on every pass. Kept short
+# (30s) because the stakes of a machine running unmetered are real money,
+# not just a stale UI.
+ENFORCER_INTERVAL_SECONDS = 30
+
 async def quota_enforcer_task(app: FastAPI):
-    """Background task to enforce usage quotas every 120 seconds."""
-    logger.info("Quota enforcer background task started.")
+    """
+    Background task, run continuously for the lifetime of the process:
+    every ENFORCER_INTERVAL_SECONDS, suspend any machine that has either
+    (a) exceeded its daily or lifetime usage quota, or
+    (b) gone quiet (no proxied WebSocket activity) for longer than
+        IDLE_TIMEOUT_SECONDS — our stand-in for "the workspace tab closed".
+
+    This is the authoritative safety net. The WS proxy in this file also
+    tries to suspend promptly on a clean disconnect as a fast-path for
+    good UX, but that in-memory mechanism can silently vanish (process
+    restart, multiple backend replicas) — this loop is what actually
+    guarantees a machine can never run unbounded.
+    """
+    logger.info("Usage enforcer background task started.")
     try:
         while True:
-            await asyncio.sleep(120)
-            logger.debug("Running background quota check...")
+            await asyncio.sleep(ENFORCER_INTERVAL_SECONDS)
             try:
-                # Use a fresh DB session for each loop iteration
                 async with SessionFactory() as db:
-                    machines = await get_running_machines(db)
-                    
-                    for machine in machines:
-                        # Ensure daily quotas reset at UTC midnight
-                        await check_and_reset_daily_quota(db, machine)
-                        
-                        if machine.last_started_at:
-                            now = datetime.now(timezone.utc).replace(tzinfo=None)
-                            live_usage = int((now - machine.last_started_at).total_seconds())
-                            
-                            daily_limit_reached = (machine.daily_usage_seconds + live_usage) >= 10800
-                            total_limit_reached = (machine.total_usage_seconds + live_usage) >= 324000
-                            
-                            if daily_limit_reached or total_limit_reached:
-                                logger.info(f"Quota exceeded for machine {machine.fly_machine_id}. Suspending...")
-                                try:
-                                    await app.state.machine_service.suspend_machine(machine.fly_machine_id)
-                                except httpx.HTTPError as e:
-                                    logger.error(f"Failed to suspend machine {machine.fly_machine_id}: {e}")
-                                    continue # Skip DB update if API call fails
-                                
-                                await update_usage_on_suspend(db, machine)
-                                machine.status = "stopped"
-                                await db.commit()
+                    running = await get_running_machines(db)
+
+                    for machine in running:
+                        # reconcile_usage() must run before ANY quota
+                        # comparison — see its docstring for the exploit
+                        # this prevents.
+                        await reconcile_usage(db, machine)
+
+                        now = datetime.now(timezone.utc).replace(tzinfo=None)
+                        live_usage = int((now - machine.last_started_at).total_seconds()) if machine.last_started_at else 0
+
+                        daily_limit_reached = (machine.daily_usage_seconds + live_usage) >= DAILY_LIMIT_SECONDS
+                        total_limit_reached = (machine.total_usage_seconds + live_usage) >= TOTAL_LIMIT_SECONDS
+
+                        if daily_limit_reached or total_limit_reached:
+                            logger.info(f"Quota exceeded for machine {machine.fly_machine_id}. Suspending...")
+                            try:
+                                await app.state.machine_service.suspend_machine(machine.fly_machine_id)
+                            except httpx.HTTPError as e:
+                                logger.error(f"Failed to suspend machine {machine.fly_machine_id}: {e}")
+                                continue  # Skip DB update if API call fails
+
+                            await update_usage_on_suspend(db, machine)
+                            machine.status = "stopped"
+                            await db.commit()
+                            continue
+
+                    # Idle sweep: separate query since reconcile_usage() above
+                    # may have just flipped some machines to suspended.
+                    idle = await get_idle_running_machines(db)
+                    for machine in idle:
+                        logger.info(
+                            f"Machine {machine.fly_machine_id} idle for >={ENFORCER_INTERVAL_SECONDS}s "
+                            f"(no WS activity) — suspending as if the workspace tab was closed."
+                        )
+                        try:
+                            await app.state.machine_service.suspend_machine(machine.fly_machine_id)
+                        except httpx.HTTPError as e:
+                            logger.error(f"Failed to idle-suspend machine {machine.fly_machine_id}: {e}")
+                            continue
+                        await update_usage_on_suspend(db, machine)
+                        machine.status = "stopped"
+                        await db.commit()
             except Exception as e:
-                logger.error(f"Error in quota enforcer loop: {e}")
+                logger.error(f"Error in usage enforcer loop: {e}")
     except asyncio.CancelledError:
-        logger.info("Quota enforcer background task cancelled.")
+        logger.info("Usage enforcer background task cancelled.")
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with _async_engine.begin() as connection:
         await connection.run_sync(Base.metadata.create_all)
+        # Base.metadata.create_all only creates missing TABLES, not missing
+        # COLUMNS on tables that already exist — this app has no Alembic
+        # migrations, so new columns need this same ad-hoc, idempotent
+        # pattern to reach an already-deployed database.
+        from sqlalchemy import text
+        await connection.execute(text(
+            "ALTER TABLE machines ADD COLUMN IF NOT EXISTS last_active_at TIMESTAMP"
+        ))
     app.state.machine_service = MachineService()
     app.state.quota_task = asyncio.create_task(quota_enforcer_task(app))
     logging.info("App started...")
@@ -132,7 +187,7 @@ WORKSPACE_PORT = 8080
 active_connections: dict[str, int] = collections.defaultdict(int)
 pending_suspends: dict[str, asyncio.Task] = {}
 
-async def delayed_suspend(machine_id: str, app: FastAPI, delay_seconds: int = 300):
+async def delayed_suspend(machine_id: str, app: FastAPI, delay_seconds: int = 60):
     try:
         await asyncio.sleep(delay_seconds)
         logger.info(f"Machine {machine_id} idle for {delay_seconds} seconds, suspending...")
@@ -262,6 +317,32 @@ async def websocket_proxy(websocket: WebSocket, path: str):
         del pending_suspends[machine_id]
         logger.info(f"[ws_proxy] Cancelled pending suspend for machine {machine_id}")
 
+    try:
+        async with SessionFactory() as db:
+            await touch_machine_activity(db, machine_id)
+    except Exception:
+        pass
+
+    async def _heartbeat():
+        """
+        Keep last_active_at fresh in the DB while this connection is open,
+        so the authoritative idle sweep (which works off last_active_at,
+        not this process's in-memory active_connections dict) never
+        mistakes an actively-used-but-quiet connection for a closed tab.
+        Interval is well under IDLE_TIMEOUT_SECONDS so a single missed
+        beat can't cause a false suspend.
+        """
+        try:
+            while True:
+                await asyncio.sleep(30)
+                async with SessionFactory() as db:
+                    await touch_machine_activity(db, machine_id)
+        except asyncio.CancelledError:
+            pass
+        except Exception as e:
+            logger.error(f"[ws_proxy] Heartbeat error for {machine_id}: {e}")
+
+    heartbeat_task = asyncio.create_task(_heartbeat())
 
     try:
         async with websockets.connect(
@@ -309,19 +390,36 @@ async def websocket_proxy(websocket: WebSocket, path: str):
     except Exception as e:
         logger.error(f"[ws_proxy] Error proxying to machine {machine_id}: {e}")
     finally:
+        heartbeat_task.cancel()
+        try:
+            await heartbeat_task
+        except asyncio.CancelledError:
+            pass
         try:
             await websocket.close()
         except Exception:
             pass
         
-        # Track disconnection and schedule suspend if no connections remain
+        # Track disconnection and schedule suspend if no connections remain.
+        # This is a fast-path for good UX (close the tab, see it suspend
+        # quickly) — it is NOT the safety net. touch_machine_activity()
+        # below already marks this exact moment as "last seen"; the
+        # DB-backed idle sweep in quota_enforcer_task will catch this
+        # machine within IDLE_TIMEOUT_SECONDS regardless of whether this
+        # in-memory path runs at all (e.g. if this backend process gets
+        # killed/restarted between now and the 60s mark).
         active_connections[machine_id] -= 1
         if active_connections[machine_id] <= 0:
             active_connections[machine_id] = 0
-            # Wait 5 minutes (300 seconds) before suspending
-            pending_suspends[machine_id] = asyncio.create_task(delayed_suspend(machine_id, websocket.app, 300))
-            logger.info(f"[ws_proxy] No active connections for {machine_id}, scheduled suspend in 5 minutes")
-            
+            pending_suspends[machine_id] = asyncio.create_task(delayed_suspend(machine_id, websocket.app, 60))
+            logger.info(f"[ws_proxy] No active connections for {machine_id}, scheduled fast-path suspend in 60s")
+
+        try:
+            async with SessionFactory() as db:
+                await touch_machine_activity(db, machine_id)
+        except Exception:
+            pass  # best-effort — the idle sweep re-derives this from last_started_at if it's ever missed
+
         logger.info(f"[ws_proxy] Closed proxy session for machine {machine_id}")
 
 # END OF FILE

@@ -44,6 +44,12 @@ class MachineDB(Base):
     machine_secret: Mapped[str] = mapped_column(nullable=True, unique=True)
 
     last_started_at: Mapped[datetime] = mapped_column(nullable=True)
+    # Last time we saw a live WebSocket (agent/terminal/control) proxied for
+    # this machine — refreshed on connect, on a periodic heartbeat while any
+    # such connection stays open, and on disconnect. Used by the background
+    # enforcer to detect "the workspace tab was closed" without depending on
+    # any single backend process's in-memory state (see main.py).
+    last_active_at: Mapped[datetime] = mapped_column(nullable=True)
     daily_usage_seconds: Mapped[int] = mapped_column(default=0, server_default="0")
     total_usage_seconds: Mapped[int] = mapped_column(default=0, server_default="0")
     last_usage_date: Mapped[date] = mapped_column(nullable=True)

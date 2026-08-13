@@ -1,5 +1,0 @@
-app = "codepilot-workspaces"
-primary_region = "sin"
-
-[build]
-  dockerfile = "Dockerfile"

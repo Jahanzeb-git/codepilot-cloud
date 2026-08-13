@@ -4,7 +4,7 @@ import asyncio
 from core.security import get_current_user, create_connect_ticket, get_user_from_connect_ticket
 from sqlalchemy.ext.asyncio import AsyncSession
 from db.database import get_db_session
-from crud.repository import add_machine, is_machine_exists, get_machine_by_secret, delete_machine_record, check_and_reset_daily_quota, update_usage_on_suspend
+from crud.repository import add_machine, is_machine_exists, get_machine_by_secret, delete_machine_record, reconcile_usage, update_usage_on_suspend, DAILY_LIMIT_SECONDS, TOTAL_LIMIT_SECONDS
 import logging
 import httpx
 import secrets
@@ -21,10 +21,10 @@ async def launch_machine(request: Request, db: AsyncSession = Depends(get_db_ses
         machine = await is_machine_exists(db, user.id)
         
         if machine:
-            await check_and_reset_daily_quota(db, machine)
-            if machine.total_usage_seconds >= 324000:
+            await reconcile_usage(db, machine)
+            if machine.total_usage_seconds >= TOTAL_LIMIT_SECONDS:
                 raise HTTPException(status_code=403, detail="You have consumed your 90-hour free tier limit.")
-            if machine.daily_usage_seconds >= 10800:
+            if machine.daily_usage_seconds >= DAILY_LIMIT_SECONDS:
                 raise HTTPException(status_code=403, detail="You have consumed your 3-hour daily limit. Come back tomorrow!")
 
         # No DB record at all: create fresh
@@ -40,7 +40,14 @@ async def launch_machine(request: Request, db: AsyncSession = Depends(get_db_ses
                 machine_state = "starting"
                 
             machine_db = await add_machine(db, machine_id, user.id, machine_state, machine_secret)
-            machine_db.last_started_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            now = datetime.now(timezone.utc).replace(tzinfo=None)
+            machine_db.last_started_at = now
+            # Baseline last_active_at at launch too, so a machine that's
+            # launched but never actually connected to (tab never opened,
+            # or opened and immediately closed before any WS connects)
+            # still gets caught by the idle sweep instead of running until
+            # the full daily/lifetime quota is exhausted.
+            machine_db.last_active_at = now
             await db.commit()
             
             logger.info(f"machine {machine_name} created with state {machine_state}")
@@ -61,7 +68,9 @@ async def launch_machine(request: Request, db: AsyncSession = Depends(get_db_ses
             machine.fly_machine_id = machine_id
             machine.machine_secret = machine_secret
             machine.status = machine_state
-            machine.last_started_at = datetime.now(timezone.utc).replace(tzinfo=None)
+            now = datetime.now(timezone.utc).replace(tzinfo=None)
+            machine.last_started_at = now
+            machine.last_active_at = now
             await db.commit()
 
             logger.info(f"machine {machine_name} re-provisioned for existing user (quota preserved), state={machine_state}")
@@ -94,7 +103,9 @@ async def launch_machine(request: Request, db: AsyncSession = Depends(get_db_ses
                 machine.fly_machine_id = machine_id
                 machine.machine_secret = machine_secret
                 machine.status = machine_state
-                machine.last_started_at = datetime.now(timezone.utc).replace(tzinfo=None)
+                now = datetime.now(timezone.utc).replace(tzinfo=None)
+                machine.last_started_at = now
+                machine.last_active_at = now
                 await db.commit()
                 
                 logger.info(f"machine {machine_name} created with state {machine_state} after auto-heal")
@@ -107,7 +118,9 @@ async def launch_machine(request: Request, db: AsyncSession = Depends(get_db_ses
         await update_usage_on_suspend(db, machine)
 
         machine.status = "starting"
-        machine.last_started_at = datetime.now(timezone.utc).replace(tzinfo=None)
+        now = datetime.now(timezone.utc).replace(tzinfo=None)
+        machine.last_started_at = now
+        machine.last_active_at = now
         await db.commit()
         await db.refresh(machine)
 
@@ -141,13 +154,13 @@ async def check_machine_status(request: Request, db: AsyncSession = Depends(get_
                 detail="Machine not found"
             )
             
-        await check_and_reset_daily_quota(db, machine)
+        await reconcile_usage(db, machine)
         
         if machine.last_started_at:
             now = datetime.now(timezone.utc).replace(tzinfo=None)
             live_usage = int((now - machine.last_started_at).total_seconds())
-            daily_exceeded = (machine.daily_usage_seconds + live_usage) >= 10800
-            total_exceeded = (machine.total_usage_seconds + live_usage) >= 324000
+            daily_exceeded = (machine.daily_usage_seconds + live_usage) >= DAILY_LIMIT_SECONDS
+            total_exceeded = (machine.total_usage_seconds + live_usage) >= TOTAL_LIMIT_SECONDS
             if daily_exceeded or total_exceeded:
                 await request.app.state.machine_service.suspend_machine(machine.fly_machine_id)
                 await update_usage_on_suspend(db, machine)
@@ -205,13 +218,13 @@ async def check_machine_status_ws(websocket: WebSocket, db: AsyncSession = Depen
             if not machine:
                 await websocket.send_json({"status": "idle"})
             else:
-                await check_and_reset_daily_quota(db, machine)
+                await reconcile_usage(db, machine)
                 
                 if machine.last_started_at:
                     now = datetime.now(timezone.utc).replace(tzinfo=None)
                     live_usage = int((now - machine.last_started_at).total_seconds())
-                    daily_exceeded = (machine.daily_usage_seconds + live_usage) >= 10800
-                    total_exceeded = (machine.total_usage_seconds + live_usage) >= 324000
+                    daily_exceeded = (machine.daily_usage_seconds + live_usage) >= DAILY_LIMIT_SECONDS
+                    total_exceeded = (machine.total_usage_seconds + live_usage) >= TOTAL_LIMIT_SECONDS
                     if daily_exceeded or total_exceeded:
                         try:
                             await websocket.app.state.machine_service.suspend_machine(machine.fly_machine_id)

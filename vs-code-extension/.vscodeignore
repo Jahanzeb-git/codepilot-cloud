@@ -1,8 +1,0 @@
-.vscode/**
-src/**
-node_modules/**
-tsconfig*.json
-webpack.config.js
-webpack_output.log
-build_log.txt
-*.vsix

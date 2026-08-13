@@ -7,11 +7,11 @@ Licensed: MIT
 # --IMPORTS--
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import select
+from sqlalchemy import select, update
 from models.models import UserDB, MachineDB
 from fastapi import HTTPException 
 from core.security import verify_pass
-from datetime import datetime, timezone
+from datetime import datetime, timezone, time, timedelta
 
 # --UTILITIES--
 async def create_user(db: AsyncSession, email: str, hashed_password: str):
@@ -93,13 +93,56 @@ async def delete_machine_record(db: AsyncSession, machine: MachineDB):
     machine.last_started_at = None
     await db.commit()
 
-async def check_and_reset_daily_quota(db: AsyncSession, machine: MachineDB):
-    """Reset daily usage if today is a new day."""
+DAILY_LIMIT_SECONDS = 10800   # 3 hours
+TOTAL_LIMIT_SECONDS = 324000  # 90 hours
+IDLE_TIMEOUT_SECONDS = 120    # no WS activity for this long => treat tab as closed
+
+async def reconcile_usage(db: AsyncSession, machine: MachineDB) -> None:
+    """
+    Bring daily_usage_seconds/total_usage_seconds/last_started_at up to date
+    as of *now*, correctly handling a running session that spans a UTC day
+    boundary. This MUST be the only place daily_usage_seconds is ever reset,
+    and it must be called before every single quota comparison anywhere in
+    the app (launch, status, ws/status, the background enforcer).
+
+    Why this matters: the previous version just did
+        if machine.last_usage_date != today: daily_usage_seconds = 0
+    which is exploitable. If a session is *actively running* when the UTC
+    date rolls over, last_started_at is untouched by that reset — so
+    live_usage = now - last_started_at keeps counting from before midnight,
+    but gets compared against a freshly-zeroed daily budget. Starting a
+    session in the last minute before UTC midnight was enough to stack a
+    full second 3-hour allowance onto one continuous session, forever,
+    every single day.
+
+    Fix: when a day boundary is crossed under an active session, we credit
+    the pre-boundary elapsed time to total_usage_seconds (so the 90-hour
+    lifetime cap stays exactly correct — nothing is lost or double-counted)
+    and then re-baseline last_started_at to the boundary itself. Everything
+    computed after this point is measured from *today's* start, so the
+    fresh daily budget can never be stacked on top of unaccounted-for prior
+    usage. A loop handles the (practically rare, but possible if the
+    enforcer was ever down) case of multiple boundaries being crossed at
+    once.
+    """
     today = datetime.now(timezone.utc).date()
-    if machine.last_usage_date != today:
-        machine.daily_usage_seconds = 0
-        machine.last_usage_date = today
-        await db.commit()
+    if machine.last_usage_date == today:
+        return
+
+    if machine.last_started_at is not None:
+        cursor = machine.last_started_at
+        while cursor.date() < today:
+            boundary = datetime.combine(cursor.date() + timedelta(days=1), time.min)
+            elapsed = int((boundary - cursor).total_seconds())
+            if elapsed > 0:
+                machine.total_usage_seconds += elapsed
+            cursor = boundary
+        machine.last_started_at = cursor
+
+    machine.daily_usage_seconds = 0
+    machine.last_usage_date = today
+    await db.commit()
+
 
 async def update_usage_on_suspend(db: AsyncSession, machine: MachineDB):
     """Calculate elapsed time since last_started_at and add to accumulators."""
@@ -117,5 +160,45 @@ async def get_running_machines(db: AsyncSession):
     query = select(MachineDB).where(MachineDB.last_started_at.isnot(None))
     result = await db.execute(query)
     return result.scalars().all()
+
+async def touch_machine_activity(db: AsyncSession, fly_machine_id: str) -> None:
+    """
+    Cheap, race-safe "I'm still here" heartbeat for a live WS proxy
+    connection. Uses a bare UPDATE (no SELECT/ORM load) so many concurrent
+    WS connections for the same machine (agent socket, several terminal
+    sockets, control socket) can all call this without stepping on each
+    other or needing to hold a loaded ORM object for the connection's
+    entire lifetime.
+    """
+    if not fly_machine_id:
+        return
+    await db.execute(
+        update(MachineDB)
+        .where(MachineDB.fly_machine_id == fly_machine_id)
+        .values(last_active_at=datetime.now(timezone.utc).replace(tzinfo=None))
+    )
+    await db.commit()
+
+async def get_idle_running_machines(db: AsyncSession):
+    """
+    Machines that are marked running but have had no WS activity in over
+    IDLE_TIMEOUT_SECONDS — our signal that the workspace tab was closed
+    (or the connection died) without a clean disconnect event ever
+    reaching any single backend process. Machines that were just started
+    and have never had a WS connect yet (last_active_at is NULL) are
+    included too, using last_started_at as the baseline, so "launch and
+    never actually open the workspace" also gets caught instead of running
+    forever.
+    """
+    query = select(MachineDB).where(MachineDB.last_started_at.isnot(None))
+    result = await db.execute(query)
+    machines = result.scalars().all()
+    now = datetime.now(timezone.utc).replace(tzinfo=None)
+    idle = []
+    for m in machines:
+        baseline = m.last_active_at or m.last_started_at
+        if baseline and (now - baseline).total_seconds() >= IDLE_TIMEOUT_SECONDS:
+            idle.append(m)
+    return idle
 
 # --END OF FILE--

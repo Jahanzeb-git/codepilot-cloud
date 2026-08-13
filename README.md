@@ -4,6 +4,45 @@ Quick disambiguation because I keep confusing people with the name: **CodePilot*
 
 Every workspace is its own Firecracker microVM. Not a shared container, not a namespace trick — an actual isolated machine per user, spun up on demand and thrown away when nobody's using it.
 
+## Run it locally (self-hosted)
+
+No account, no signup. You need Docker — that's it.
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Jahanzeb-git/codepilot-cloud/main/distribution/install.sh | bash
+```
+
+That installs the `codepilot-workspace` command. Then from any project directory:
+
+```bash
+cd my-project
+codepilot-workspace
+```
+
+It will:
+1. Install Docker automatically if it's missing (Linux). On macOS it installs Docker Desktop via Homebrew if available, then opens it for the one-time GUI setup.
+2. Pull `ghcr.io/jahanzeb-git/codepilot-workspace:latest` on first run (subsequent starts reuse the local image).
+3. Mount your current directory as `/workspace` inside the container, and persist your agent config and sessions under `~/.codepilot/` on the host.
+4. Open the IDE in a tab-less Chrome/Chromium/Edge app window (or your default browser if none is found).
+
+Once it's running, open the **Settings** panel inside the IDE and add your API keys (DeepSeek, Voyage, Tavily). The container starts with placeholder values so it doesn't crash on startup — replace them with real keys before running any agent task.
+
+```bash
+# Stop the workspace
+docker stop codepilot-workspace
+
+# Restart it later (skips the image pull)
+codepilot-workspace
+
+# Point it at a different project
+CODEPILOT_WORKSPACE_DIR=/path/to/other-project codepilot-workspace
+
+# Use a different port (default 8080)
+CODEPILOT_PORT=9090 codepilot-workspace
+```
+
+---
+
 ## Backend (`/backend`)
 
 FastAPI service that acts as the control plane. It doesn't run any user code itself — it just decides what happens to the machines.
@@ -13,13 +52,13 @@ FastAPI service that acts as the control plane. It doesn't run any user code its
 - Suspends anything idle, because I'm paying for this out of pocket, not VC money.
 - Enforces usage quotas (more on that below).
 
-## Runner (`/runner`)
+## Machine (`/machine`)
 
 The image that actually gets booted per user. This is where the agent lives.
 
-- `agent_server.py` runs the agent runtime and talks to the frontend over a Unix domain socket — local, no network hop, so it's fast and there's nothing to eavesdrop on.
+- `runner/agent_server.py` runs the agent runtime and talks to the frontend over a Unix domain socket — local, no network hop, so it's fast and there's nothing to eavesdrop on.
 - A small Rust daemon handles filesystem snapshotting. It's a precompiled binary baked straight into the image, not a script wrapping some CLI tool, so it's basically as fast as this kind of thing gets. It watches the workspace and syncs to Backblaze B2 in the background, which is what lets a machine die and come back later without anyone losing their work.
-- Aside from code-server, the entire runner image comes in under 100MB. code-server alone is the fat one at 800MB+ — everything else is a rounding error next to it.
+- `webapp/` is the browser IDE — a TypeScript/Vite frontend that gets compiled and baked into the Docker image at build time.
 
 ## Security
 
@@ -29,7 +68,7 @@ Runtime credentials (LLM API keys, etc.) are handled so they're usable by the ag
 
 ## Fair use / quota
 
-This is a portfolio project, not a hosted product, so I've capped it: **3 hours of workspace time per day, for 30 days**, per environment. If you like it and want to actually use it for real, self-host it — it deploys cleanly onto anything that gives you Firecracker microVMs and per-machine private networking (AWS bare-metal EC2 works, though you're on your own for the orchestration layer that comes free here).
+This is a portfolio project, not a hosted product, so I've capped it: **3 hours of workspace time per day, for 30 days**, per environment. If you like it and want to actually use it for real, self-host it — the `distribution/` scripts make that a one-liner.
 
 ## Architecture
 
@@ -55,4 +94,16 @@ flowchart TB
 
 ## Deploying it
 
-Backend and runner deploy as two separate services onto the infrastructure. Runner gets built and pushed as an image; the backend pulls it fresh every time it provisions a new workspace. Nothing exotic — if your platform gives you Firecracker VMs and private networking between them, this maps over pretty directly.
+Backend and machine deploy as two separate services.
+
+```bash
+# Deploy the control plane
+cd backend
+fly deploy
+
+# Build and push the workspace image (Fly CI path)
+cd machine
+fly deploy --build-only --push
+```
+
+The GitHub Actions workflow (`.github/workflows/publish-image.yml`) also builds and pushes the same `machine/runner/Dockerfile` image to GHCR on every push to `main`, which is what the `distribution/` scripts pull.
