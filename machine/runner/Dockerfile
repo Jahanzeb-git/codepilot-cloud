@@ -52,7 +52,7 @@ COPY --from=builder /usr/src/app/persistent-vol/target/release/snapshot-daemon /
 COPY --from=builder /usr/src/app/server/target/release/codepilot-server /usr/local/bin/codepilot-server
 # Baked into the image (not the /workspace persistent volume) — STATIC_PATH
 # below points here so a fresh B2-restored /workspace never shadows the UI.
-COPY --from=frontend-builder /usr/src/app/webapp/dist /opt/codepilot/frontend/dist
+COPY --from=frontend-builder /usr/src/app/runner/frontend/dist /opt/codepilot/frontend/dist
 
 RUN chmod +x /usr/local/bin/snapshot-daemon
 RUN chmod +x /usr/local/bin/codepilot-server
