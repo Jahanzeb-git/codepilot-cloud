@@ -23,6 +23,11 @@ agent:
     enabled: false
     max_steps: 20
 
+  memory:
+    max_context_tokens: 100000
+    context_stress_multiplier: 1.0
+    context_stress_trigger: 0.78
+
   tools:
     - name: "write_file"
       enabled: true

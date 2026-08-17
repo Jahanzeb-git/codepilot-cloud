@@ -262,6 +262,9 @@ export class AgentPanel {
         this.setRunning(false);
         this.appendError(msg.message);
         break;
+      case "context_maintenance":
+        this.appendSystemNote(msg.message);
+        break;
       case "sessions_list":
         this.sessionsList = (msg as any).sessions;
         this.activeSession = (msg as any).active_session_id;

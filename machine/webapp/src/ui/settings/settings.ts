@@ -580,6 +580,12 @@ export class SettingsPanel {
         ${this.switchRow("unsafe-mode", "Unsafe Mode", "Skip all tool permission prompts (⚠️ use with caution)", d?.unsafe_mode ?? true)}
       </div>
       <div class="field-group">
+        <div class="group-title">Memory Management ${this.infoTip("Control context maintenance thresholds.")}</div>
+        ${this.numRow2("max-context-tokens", "Max Context Tokens", "Max context size", d?.memory?.max_context_tokens ?? 120000, 1000, 1000000, 1000)}
+        ${this.numRow2("context-stress-multiplier", "Stress Multiplier", "Multiplier for tokens", d?.memory?.context_stress_multiplier ?? 1.0, 0.1, 5.0, 0.1)}
+        ${this.numRow2("context-stress-trigger", "Stress Trigger", "Trigger threshold (0.0 to 1.0)", d?.memory?.context_stress_trigger ?? 0.78, 0.1, 1.0, 0.01)}
+      </div>
+      <div class="field-group">
         <div class="group-title">Sub-Agents ${this.infoTip("Enable the agent to spawn sub-agents for parallel work.")}</div>
         ${this.switchRow("sub-agents-enabled", "Enable Sub-Agents", "Allow spawning sub-agents", d?.sub_agents?.enabled ?? false)}
         ${this.numRow2("sub-agents-steps", "Sub-Agent Max Steps", "Step limit for each sub-agent", d?.sub_agents?.max_steps ?? 20, 1, 100, 1)}
@@ -616,6 +622,11 @@ export class SettingsPanel {
 
     this.onNum("max-steps", (v) => (d.max_steps = v));
     this.onSwitch("unsafe-mode", (v) => (d.unsafe_mode = v));
+
+    if (!d.memory) d.memory = { max_context_tokens: 120000, context_stress_multiplier: 1.0, context_stress_trigger: 0.78 };
+    this.onNum("max-context-tokens", (v) => (d.memory.max_context_tokens = v));
+    this.onNum("context-stress-multiplier", (v) => (d.memory.context_stress_multiplier = v));
+    this.onNum("context-stress-trigger", (v) => (d.memory.context_stress_trigger = v));
 
     if (!d.sub_agents) d.sub_agents = { enabled: false, max_steps: 20 };
     this.onSwitch("sub-agents-enabled", (v) => (d.sub_agents.enabled = v));
@@ -663,6 +674,11 @@ export class SettingsPanel {
       max_steps: d.max_steps,
       unsafe_mode: d.unsafe_mode,
       sub_agents: { enabled: d.sub_agents?.enabled ?? false, max_steps: d.sub_agents?.max_steps ?? 20 },
+      memory: {
+        max_context_tokens: d.memory?.max_context_tokens ?? 120000,
+        context_stress_multiplier: d.memory?.context_stress_multiplier ?? 1.0,
+        context_stress_trigger: d.memory?.context_stress_trigger ?? 0.78,
+      },
       embedding: {
         model: d.embedding?.model || "voyage-code-3",
         base_url: d.embedding?.base_url || "https://api.voyageai.com/v1",

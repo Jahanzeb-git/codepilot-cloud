@@ -74,7 +74,8 @@ export type AgentInbound =
   | { type: "session_switched"; session_id: string; history?: any[] }
   | { type: "session_deleted"; session_id: string }
   | { type: "settings_updated"; success: boolean; message?: string }
-  | { type: "settings_data"; settings: AgentSettingsData };
+  | { type: "settings_data"; settings: AgentSettingsData }
+  | { type: "context_maintenance"; message: string; stress_pct: number; history_tokens: number; safe_budget: number; candidates: string };
 
 // --------------------------------------------------------- model catalog
 
@@ -162,6 +163,7 @@ export interface AgentSettingsPatch {
   max_steps?: number;
   unsafe_mode?: boolean;
   sub_agents?: { enabled: boolean; max_steps?: number };
+  memory?: { max_context_tokens?: number; context_stress_multiplier?: number; context_stress_trigger?: number };
   tools?: Record<string, { enabled?: boolean; require_permission?: boolean }>;
   system_prompt_append?: string;
   system_prompt_mode?: "inline" | "file";
@@ -188,6 +190,7 @@ export interface AgentSettingsData {
   max_steps: number;
   unsafe_mode: boolean;
   sub_agents: { enabled: boolean; max_steps: number };
+  memory: { max_context_tokens: number; context_stress_multiplier: number; context_stress_trigger: number };
   system_prompt: string;
   system_prompt_mode: "inline" | "file";
   system_prompt_custom: string; // inline mode only: the user's custom text, with the fixed default prefix already stripped off

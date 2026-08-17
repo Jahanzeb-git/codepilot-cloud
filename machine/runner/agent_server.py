@@ -16,6 +16,7 @@ from codepilot import (
     on_permission_request,
     on_thinking_stream,
     on_runtime_error,
+    on_context_maintenance_start,
     EventType,
 )
 
@@ -334,8 +335,22 @@ def init_runtime(session_id: str) -> Runtime:
 
     @on_runtime_error(r)
     def _runtime_error(error: str, **_):
+        if "PARSER ERROR" in error:
+            return
         print(f"[EVENT] Runtime error: {error}")
         emit({"type": "error", "message": error})
+
+    @on_context_maintenance_start(r)
+    def _context_maintenance(stress_pct: int, history_tokens: int, safe_budget: int, candidates: str, **_):
+        print("[EVENT] on_context_maintenance_start called.")
+        emit({
+            "type": "context_maintenance",
+            "message": f"Context maintenance triggered (Stress: {stress_pct}%, Load: {history_tokens:,} / {safe_budget:,} safe tokens).",
+            "stress_pct": stress_pct,
+            "history_tokens": history_tokens,
+            "safe_budget": safe_budget,
+            "candidates": candidates
+        })
 
     print(f"[INFO] Runtime initialised for session: {session_id}")
     return r
@@ -565,6 +580,7 @@ def handle_client(conn, addr):
                     model = agent.get("model", {})
                     rt = agent.get("runtime", {})
                     sub = agent.get("sub_agents", {})
+                    mem = agent.get("memory", {})
                     thinking = model.get("thinking", {})
                     tools_raw = agent.get("tools", [])
 
@@ -612,6 +628,11 @@ def handle_client(conn, addr):
                             "sub_agents": {
                                 "enabled": sub.get("enabled", False),
                                 "max_steps": sub.get("max_steps", 20),
+                            },
+                            "memory": {
+                                "max_context_tokens": mem.get("max_context_tokens", 120000),
+                                "context_stress_multiplier": mem.get("context_stress_multiplier", 1.0),
+                                "context_stress_trigger": mem.get("context_stress_trigger", 0.78),
                             },
                             "system_prompt": raw_prompt,
                             "system_prompt_mode": "file" if is_file_mode else "inline",
@@ -669,6 +690,19 @@ def handle_client(conn, addr):
 
                 update_if_present(data["agent"]["runtime"], "max_steps",    settings)
                 update_if_present(data["agent"]["runtime"], "unsafe_mode",  settings)
+
+                mem_settings = settings.get("memory", {})
+                if mem_settings:
+                    if "memory" not in data["agent"]:
+                        data["agent"]["memory"] = {}
+                    mem_block = data["agent"]["memory"]
+                    if "max_context_tokens" in mem_settings:
+                        mem_block["max_context_tokens"] = int(mem_settings["max_context_tokens"])
+                    if "context_stress_multiplier" in mem_settings:
+                        mem_block["context_stress_multiplier"] = float(mem_settings["context_stress_multiplier"])
+                    if "context_stress_trigger" in mem_settings:
+                        mem_block["context_stress_trigger"] = float(mem_settings["context_stress_trigger"])
+
                 _apply_mcp_settings(data, settings)
 
                 # Sub-agents config
