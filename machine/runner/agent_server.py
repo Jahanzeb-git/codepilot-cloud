@@ -335,7 +335,7 @@ def init_runtime(session_id: str) -> Runtime:
 
     @on_runtime_error(r)
     def _runtime_error(error: str, **_):
-        if "PARSER ERROR" in error:
+        if "PARSER ERROR" in error or "EXECUTION ERROR" in error:
             return
         print(f"[EVENT] Runtime error: {error}")
         emit({"type": "error", "message": error})
