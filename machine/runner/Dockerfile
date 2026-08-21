@@ -32,7 +32,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-RUN pip install --no-cache-dir --break-system-packages codepilot-ai==0.9.26
+RUN pip install --no-cache-dir --break-system-packages codepilot-ai==0.9.27
 RUN pip install --no-cache-dir --break-system-packages dashscope
 RUN pip install --no-cache-dir --break-system-packages voyageai
 
