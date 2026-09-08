@@ -37,7 +37,7 @@ class MachineService:
                     "WORKSPACE_ID": workspace_id,
                     "CREDENTIALS_ENDPOINT": "https://codepilot-api.fly.dev/machines/internal/b2-credentials",
                     "CONTROL_PLANE_URL": "https://codepilot-api.fly.dev",
-                    "DEEPSEEK_API_KEY": os.environ.get("DEEPSEEK_API_KEY", ""),
+                    "EXPERIENTIAL_API_KEY": os.environ.get("EXPERIENTIAL_API_KEY", ""),
                     "VOYAGE_API_KEY": os.environ.get("VOYAGE_API_KEY", ""),
                     "TAVILY_API_KEY": os.environ.get("TAVILY_API_KEY", "")
                 },

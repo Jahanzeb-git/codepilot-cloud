@@ -110,21 +110,35 @@ export const MODEL_CATALOG: Record<string, ModelDef[]> = {
     { name: "qwen3.7-plus", maxOutputTokens: 65536, contextWindow: 1000000, thinkingMode: "switchable", reasoningEffortSupport: true, reasoningEffortLevels: ["low", "medium", "high", "max"], pricing: { input: 0.40, output: 1.60 }, notes: "Mid-tier multimodal" },
     { name: "qwen3.7-flash", maxOutputTokens: 65536, contextWindow: 1000000, thinkingMode: "switchable", reasoningEffortSupport: true, reasoningEffortLevels: ["none", "low", "medium", "high", "max"], pricing: { input: 0.03, output: 0.13 }, notes: "Low-cost Flash tier" },
   ],
+  experientiallabs: [
+    { name: "qwen3.8-27b", maxOutputTokens: 16384, contextWindow: 1000000, thinkingMode: "none", reasoningEffortSupport: false, reasoningEffortLevels: [], pricing: { input: 0.00, output: 0.00 }, notes: "FREE · Fast 27B — best value default" },
+    { name: "deepseek-v4-flash", maxOutputTokens: 32768, contextWindow: 1050000, thinkingMode: "none", reasoningEffortSupport: false, reasoningEffortLevels: [], pricing: { input: 0.00, output: 0.00 }, notes: "FREE · DeepSeek V4 Flash via gateway" },
+    { name: "gpt-5.0-luna", maxOutputTokens: 32768, contextWindow: 1050000, thinkingMode: "none", reasoningEffortSupport: false, reasoningEffortLevels: [], pricing: { input: 0.00, output: 0.00 }, notes: "FREE · GPT-5 Luna via gateway" },
+    { name: "claude-sonnet-5", maxOutputTokens: 128000, contextWindow: 1000000, thinkingMode: "adaptive", reasoningEffortSupport: true, reasoningEffortLevels: ["low", "medium", "high"], pricing: { input: 2.00, output: 10.00 }, notes: "Claude Sonnet 5 via gateway" },
+    { name: "claude-opus-5", maxOutputTokens: 128000, contextWindow: 1000000, thinkingMode: "adaptive", reasoningEffortSupport: true, reasoningEffortLevels: ["low", "medium", "high"], pricing: { input: 5.00, output: 25.00 }, notes: "Claude Opus 5 via gateway" },
+    { name: "kimi-k3", maxOutputTokens: 32768, contextWindow: 1050000, thinkingMode: "reasoning", reasoningEffortSupport: true, reasoningEffortLevels: ["low", "medium", "high"], pricing: { input: 4.00, output: 15.00 }, notes: "Kimi K3 · strong reasoning" },
+    { name: "gpt-5.6-sol", maxOutputTokens: 128000, contextWindow: 1050000, thinkingMode: "reasoning", reasoningEffortSupport: true, reasoningEffortLevels: ["low", "medium", "high"], pricing: { input: 2.00, output: 10.00 }, notes: "GPT-5.6 Sol · flagship reasoning" },
+  ],
 };
+
 
 export const PROVIDER_API_KEY_ENV: Record<string, string> = {
   anthropic: "ANTHROPIC_API_KEY",
   openai: "OPENAI_API_KEY",
   deepseek: "DEEPSEEK_API_KEY",
   alibaba: "DASHSCOPE_API_KEY",
+  experientiallabs: "EXPERIENTIAL_API_KEY",
 };
 
+
 export const PROVIDER_LABELS: Record<string, string> = {
+  experientiallabs: "Experiential Labs",
   anthropic: "Anthropic",
   openai: "OpenAI",
   deepseek: "Deepseek",
   alibaba: "Alibaba (Qwen)",
 };
+
 
 // --------------------------------------------------------- settings patch
 

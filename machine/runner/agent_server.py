@@ -47,12 +47,13 @@ DEFAULT_SYSTEM_PROMPT = (
 
 os.makedirs(SESSIONS_DIR, exist_ok=True)
 
-_MACHINE_SECRET    = os.environ.pop("MACHINE_SECRET",    "")
-_CONTROL_PLANE_URL = os.environ.pop("CONTROL_PLANE_URL", "")
-_DASHSCOPE_API_KEY = os.environ.pop("DASHSCOPE_API_KEY", "")
-_ALIBABA_API_KEY   = os.environ.pop("ALIBABA_API_KEY",   "")
-_VOYAGE_API_KEY    = os.environ.pop("VOYAGE_API_KEY",    "")
-_TAVILY_API_KEY    = os.environ.pop("TAVILY_API_KEY",    "")
+_MACHINE_SECRET       = os.environ.pop("MACHINE_SECRET",       "")
+_CONTROL_PLANE_URL    = os.environ.pop("CONTROL_PLANE_URL",    "")
+_EXPERIENTIAL_API_KEY = os.environ.pop("EXPERIENTIAL_API_KEY", "")
+_DASHSCOPE_API_KEY    = os.environ.pop("DASHSCOPE_API_KEY",    "")
+_ALIBABA_API_KEY      = os.environ.pop("ALIBABA_API_KEY",      "")
+_VOYAGE_API_KEY       = os.environ.pop("VOYAGE_API_KEY",       "")
+_TAVILY_API_KEY       = os.environ.pop("TAVILY_API_KEY",       "")
 
 # Tracks user-supplied API key override (from update_settings).
 # When a user brings their own LLM key, this replaces the platform default
@@ -129,6 +130,8 @@ def _inject_runtime_env() -> None:
     provider and tool setup).
     """
     # Platform-provided defaults
+    if _EXPERIENTIAL_API_KEY:
+        os.environ["EXPERIENTIAL_API_KEY"] = _EXPERIENTIAL_API_KEY
     if _DASHSCOPE_API_KEY:
         os.environ["DASHSCOPE_API_KEY"] = _DASHSCOPE_API_KEY
     if _ALIBABA_API_KEY:
@@ -151,7 +154,7 @@ def _scrub_runtime_env() -> None:
     Remove all API keys from os.environ immediately after Runtime.__init__()
     returns. Must be called before any subprocess can fork.
     """
-    for k in ("DASHSCOPE_API_KEY", "ALIBABA_API_KEY", "VOYAGE_API_KEY", "TAVILY_API_KEY"):
+    for k in ("EXPERIENTIAL_API_KEY", "DASHSCOPE_API_KEY", "ALIBABA_API_KEY", "VOYAGE_API_KEY", "TAVILY_API_KEY"):
         os.environ.pop(k, None)
     # Also scrub the user's custom env var name if different from defaults
     if _user_llm_env_var:

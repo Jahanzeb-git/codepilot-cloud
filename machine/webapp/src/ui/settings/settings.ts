@@ -259,7 +259,7 @@ export class SettingsPanel {
 
   private renderModel() {
     const d = this.settingsData;
-    const provider = d?.provider || "alibaba";
+    const provider = d?.provider || "experientiallabs";
     const models = MODEL_CATALOG[provider] || [];
     const currentModel = models.find((m) => m.name === d?.model) || models[0];
     const thinkingEnabled = d?.thinking?.enabled ?? false;
