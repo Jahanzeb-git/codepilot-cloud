@@ -66,13 +66,7 @@ rm -f /etc/environment 2>/dev/null
 
 echo "[INFO] Starting CodePilot Workspace Server..."
 # Run the Rust server in the background. It binds to 8080.
-env -u MACHINE_SECRET \
-    -u CONTROL_PLANE_URL \
-    -u DASHSCOPE_API_KEY \
-    -u ALIBABA_API_KEY \
-    -u VOYAGE_API_KEY \
-    -u TAVILY_API_KEY \
-    codepilot-server &
+codepilot-server &
 CODE_PID=$!
 
 # Wait tells bash to sit here and block until BOTH specific processes exit.
