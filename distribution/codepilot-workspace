@@ -109,9 +109,9 @@ agent:
   system_prompt: "You're Codepilot an agentic software assistance interfaced through IDE on user browser. Your agentic runtime is based on `codepilot-ai` library developed and architected by LLM Engineer 'Jahanzeb Ahmed (jahanzebahmed.mail@gmail.com | https://github.com/jahanzeb-git/)' anyone can just `pip install codepilot-ai` to embed in software components. You must smartly work and wise about token usage but solve TASK(s) at your own pace."
 
   model:
-    provider: "deepseek"
-    name: "deepseek-v4-flash"
-    api_key_env: "DEEPSEEK_API_KEY"
+    provider: "experientiallabs"
+    name: "qwen3.8-27b"
+    api_key_env: "EXPERIENTIAL_API_KEY"
     temperature: 1.0
     max_tokens: 65536
     thinking:
@@ -219,6 +219,7 @@ run_container() {
     -v "$AGENT_YAML:/opt/codepilot/agent.yaml" \
     -v "$SESSIONS_DIR:/root/.codepilot/sessions" \
     --mount "type=bind,source=${WORKSPACE_DIR},target=/workspace" \
+    -e EXPERIENTIAL_API_KEY="not-configured" \
     -e DEEPSEEK_API_KEY="not-configured" \
     -e VOYAGE_API_KEY="not-configured" \
     -e TAVILY_API_KEY="not-configured" \

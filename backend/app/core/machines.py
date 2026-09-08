@@ -197,6 +197,14 @@ class MachineService:
                 
                 # Update the image in the config payload
                 current_config["image"] = RUNNER_IMAGE
+                
+                # Also ensure the env dictionary has all required keys in case they were added since the machine was created
+                current_env = current_config.setdefault("env", {})
+                current_env["EXPERIENTIAL_API_KEY"] = os.environ.get("EXPERIENTIAL_API_KEY", "")
+                current_env["DEEPSEEK_API_KEY"] = os.environ.get("DEEPSEEK_API_KEY", "")
+                current_env["VOYAGE_API_KEY"] = os.environ.get("VOYAGE_API_KEY", "")
+                current_env["TAVILY_API_KEY"] = os.environ.get("TAVILY_API_KEY", "")
+                
                 payload = {"config": current_config}
                 
                 # 3. Post the updated config back to Fly.io

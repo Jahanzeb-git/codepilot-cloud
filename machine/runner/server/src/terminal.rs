@@ -149,6 +149,7 @@ pub async fn handle_user_terminal(ws: WebSocket, state: Arc<AppState>) {
     let mut cmd = CommandBuilder::new("bash");
     cmd.env_remove("MACHINE_SECRET");
     cmd.env_remove("CONTROL_PLANE_URL");
+    cmd.env_remove("DEEPSEEK_API_KEY");
     cmd.env_remove("DASHSCOPE_API_KEY");
     cmd.env_remove("ALIBABA_API_KEY");
     cmd.env_remove("VOYAGE_API_KEY");
